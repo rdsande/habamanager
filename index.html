@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haba Manager - Smart Money Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">💰</div>
+                <span class="logo-text">Haba Manager</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="investments">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Investments</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="expenses">
+                    <i class="fas fa-receipt"></i>
+                    <span>Expenses</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="accounts">
+                    <i class="fas fa-university"></i>
+                    <span>Bank Accounts</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="analytics">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="performance">
+                    <i class="fas fa-trophy"></i>
+                    <span>Performance</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="support-card">
+                    <div class="support-icon">💬</div>
+                    <div class="support-text">
+                        <h4>Powered by:</h4>
+                        <p>Tekleo Digital</p>
+                    </div>
+                    <button class="support-btn">Visit</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <h1 class="page-title">Dashboard</h1>
+                    <p class="page-subtitle">Welcome back! Here's your financial overview</p>
+                </div>
+                <div class="header-right">
+                    <div class="user-info">
+                        <div class="user-avatar">👤</div>
+                        <span class="user-name">Manager</span>
+                    </div>
+                </div>
+            </header>
+
+
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard" class="tab-content active">
+                <div class="dashboard-grid">
+                    <!-- Quick Actions -->
+                    <div class="actions-card">
+                        <div class="actions-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="action-btn primary" onclick="showAddInvestment()">
+                                <i class="fas fa-plus"></i>
+                                <span>Add Investment</span>
+                            </button>
+                            <button class="action-btn secondary" onclick="showAddExpense()">
+                                <i class="fas fa-receipt"></i>
+                                <span>Add Expense</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Cards -->
+                    <div class="stats-row">
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon wallet"><i class="fas fa-wallet"></i></div>
+                                <div class="stat-trend" id="startingBalanceTrend">--</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Starting Balance</h3>
+                                <p class="stat-value" id="startingBalance">TSh 0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon wallet"><i class="fas fa-wallet"></i></div>
+                                <div class="stat-trend up">+12%</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Invested</h3>
+                                <p class="stat-value" id="totalPortfolio">TSh 0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon investments"><i class="fas fa-chart-line"></i></div>
+                                <div class="stat-trend up">+8%</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Active Investments</h3>
+                                <p class="stat-value" id="activeInvestments">0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon expenses"><i class="fas fa-money-bill-wave"></i></div>
+                                <div class="stat-trend down">-5%</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Monthly Expenses</h3>
+                                <p class="stat-value" id="monthlyExpenses">TSh 0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon roi"><i class="fas fa-trophy"></i></div>
+                                <div class="stat-trend up">+15%</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>ROI This Month</h3>
+                                <p class="stat-value" id="monthlyROI">0%</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon revenue"><i class="fas fa-coins"></i></div>
+                                <div class="stat-trend" id="revenueTrend">--</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Total Revenue</h3>
+                                <p class="stat-value" id="totalRevenue">TSh 0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <div class="stat-icon wallet"><i class="fas fa-university"></i></div>
+                                <div class="stat-trend" id="remainingBalanceTrend">--</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Remaining Balance</h3>
+                                <p class="stat-value" id="remainingBalance">TSh 0</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card performance-table-card">
+                            <div class="stat-header">
+                                <div class="stat-icon performance"><i class="fas fa-trophy"></i></div>
+                                <div class="stat-trend up">Top 5</div>
+                            </div>
+                            <div class="stat-info">
+                                <h3>Performance</h3>
+                                <div class="performance-table" id="performanceTable">
+                                    <div class="performance-table-header">
+                                        <span>Business</span>
+                                        <span>Returns</span>
+                                        <span>Break-even</span>
+                                    </div>
+                                    <div class="performance-table-body" id="performanceTableBody">
+                                        <!-- Performance data will be populated here -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Section -->
+                    <div class="charts-section">
+                        <div class="chart-card main-chart">
+                            <div class="chart-header">
+                                <h3>Financial Overview</h3>
+                                <div class="chart-controls">
+                                    <select id="chartPeriod">
+                                        <option value="week">This Week</option>
+                                        <option value="month" selected>This Month</option>
+                                        <option value="year">This Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="overviewChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="chart-card side-chart">
+                            <div class="chart-header">
+                                <h3>Break-even Progress</h3>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-circle" id="progressCircle">
+                                    <div class="progress-text">
+                                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                                        <span class="progress-label">Complete</span>
+                                    </div>
+                                </div>
+                                <div class="progress-details">
+                                    <div class="progress-item">
+                                        <span class="progress-time" id="estimatedTime">-- months</span>
+                                        <span class="progress-desc">Est. Break-even</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Performance Summary -->
+                    <div class="performance-summary-card">
+                        <div class="performance-summary-header">
+                            <h3>Top Performers</h3>
+                            <a href="#" class="view-all-link" onclick="document.querySelector('[data-tab=performance]').click()">View All</a>
+                        </div>
+                        <div class="performance-summary-list" id="dashboardPerformanceList">
+                            <!-- Performance summary will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Investments Tab -->
+            <div id="investments" class="tab-content">
+                <div class="section-header">
+                    <h2>Investment Portfolio</h2>
+                    <button class="btn-primary" onclick="showAddInvestment()">Add Investment</button>
+                </div>
+                <div id="investmentsList" class="investments-list"></div>
+            </div>
+
+            <!-- Expenses Tab -->
+            <div id="expenses" class="tab-content">
+                <div class="section-header">
+                    <h2>Expense Tracking</h2>
+                    <button class="btn-primary" onclick="showAddExpense()">Add Expense</button>
+                </div>
+                <div class="expense-filters">
+                    <select id="expenseFilter">
+                        <option value="all">All Time</option>
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <div id="expensesList" class="expenses-list"></div>
+            </div>
+
+            <!-- Bank Accounts Tab -->
+            <div id="accounts" class="tab-content">
+                <div class="section-header">
+                    <h2>Bank Accounts</h2>
+                    <button class="btn-primary" onclick="showAddAccount()">Add Account</button>
+                </div>
+
+                <div class="accounts-overview">
+                    <div class="accounts-grid" id="accountsGrid">
+                        <!-- Account cards will be populated here -->
+                    </div>
+                </div>
+
+                <div class="transactions-section">
+                    <div class="section-header">
+                        <h2>Recent Transactions</h2>
+                        <div class="transaction-filters">
+                            <select id="accountFilter" onchange="filterTransactions()">
+                                <option value="all">All Accounts</option>
+                            </select>
+                            <select id="transactionTypeFilter" onchange="filterTransactions()">
+                                <option value="all">All Types</option>
+                                <option value="deposit">Deposits</option>
+                                <option value="withdrawal">Withdrawals</option>
+                                <option value="expense">Expenses</option>
+                                <option value="investment">Investments</option>
+                                <option value="revenue">Revenue</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="transactions-list" id="transactionsList">
+                        <!-- Transactions will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics" class="tab-content">
+                <h2>Performance Analytics</h2>
+                <div id="analyticsContent" class="analytics-content"></div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="performance" class="tab-content">
+                <h2>Business Performance</h2>
+                <div class="performance-header">
+
+                    <div class="performance-summary">
+                        <div class="summary-card">
+                            <h3>Best Performer</h3>
+                            <div id="bestPerformer">-</div>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Total ROI</h3>
+                            <div id="totalROI">0%</div>
+                        </div>
+                        <div class="summary-card">
+                            <h3>Break-even Status</h3>
+                            <div id="breakEvenStatus">-</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="performance-list" id="performanceList">
+                    <!-- Performance data will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Investment -->
+    <div id="investmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('investmentModal')">&times;</span>
+            <h3>Add New Investment</h3>
+            <form id="investmentForm">
+                <input type="text" id="businessName" placeholder="Business Name" required>
+                <select id="businessType" required>
+                    <option value="">Select Business Type</option>
+                    <option value="retail">Retail</option>
+                    <option value="service">Service</option>
+                    <option value="manufacturing">Manufacturing</option>
+                    <option value="technology">Technology</option>
+                    <option value="real-estate">Real Estate</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="number" id="investmentAmount" placeholder="Investment Amount" step="0.01" required>
+                <select id="investmentAccount" required>
+                    <option value="">Select Account to Deduct From</option>
+                </select>
+                <input type="number" id="dailyRevenue" placeholder="Expected Daily Revenue" step="0.01" required>
+                <input type="date" id="startDate" required>
+                <textarea id="investmentNotes" placeholder="Notes (optional)"></textarea>
+                <button type="submit">Add Investment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Expense -->
+    <div id="expenseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('expenseModal')">&times;</span>
+            <h3>Add Expense</h3>
+            <form id="expenseForm">
+                <input type="text" id="expenseDescription" placeholder="Expense Description" required>
+                <input type="number" id="expenseAmount" placeholder="Amount" step="0.01" required>
+                <select id="expenseAccount" required>
+                    <option value="">Select Account to Deduct From</option>
+                </select>
+                <select id="expenseCategory" required>
+                    <option value="">Select Category</option>
+                    <option value="fuel">Fuel</option>
+                    <option value="maintenance">Maintenance</option>
+                    <option value="supplies">Supplies</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="utilities">Utilities</option>
+                    <option value="rent">Rent</option>
+                    <option value="other">Other</option>
+                </select>
+                <select id="relatedBusiness">
+                    <option value="">Select Business (optional)</option>
+                </select>
+                <input type="date" id="expenseDate" required>
+                <textarea id="expenseNotes" placeholder="Notes (optional)"></textarea>
+                <button type="submit">Add Expense</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Bank Account -->
+    <div id="accountModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('accountModal')">&times;</span>
+            <h3>Add Bank Account</h3>
+            <form id="accountForm">
+                <input type="text" id="accountName" placeholder="Account Name" required>
+                <select id="accountType" required>
+                    <option value="">Select Account Type</option>
+                    <option value="checking">Checking Account</option>
+                    <option value="savings">Savings Account</option>
+                    <option value="business">Business Account</option>
+                    <option value="investment">Investment Account</option>
+                </select>
+                <input type="text" id="bankName" placeholder="Bank Name" required>
+                <input type="number" id="initialBalance" placeholder="Initial Balance" step="0.01" required>
+                <textarea id="accountNotes" placeholder="Notes (optional)"></textarea>
+                <button type="submit">Add Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Deposit -->
+    <div id="depositModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('depositModal')">&times;</span>
+            <h3>Make Deposit</h3>
+            <form id="depositForm">
+                <select id="depositAccount" required>
+                    <option value="">Select Account</option>
+                </select>
+                <input type="number" id="depositAmount" placeholder="Deposit Amount" step="0.01" required>
+                <input type="text" id="depositSource" placeholder="Source of Funds" required>
+                <input type="date" id="depositDate" required>
+                <textarea id="depositNotes" placeholder="Notes (optional)"></textarea>
+                <button type="submit">Make Deposit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Withdrawal -->
+    <div id="withdrawalModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('withdrawalModal')">&times;</span>
+            <h3>Make Withdrawal</h3>
+            <form id="withdrawalForm">
+                <select id="withdrawalAccount" required>
+                    <option value="">Select Account</option>
+                </select>
+                <input type="number" id="withdrawalAmount" placeholder="Withdrawal Amount" step="0.01" required>
+                <input type="text" id="withdrawalPurpose" placeholder="Purpose of Withdrawal" required>
+                <input type="date" id="withdrawalDate" required>
+                <textarea id="withdrawalNotes" placeholder="Notes (optional)"></textarea>
+                <button type="submit">Make Withdrawal</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for Adding Revenue -->
+    <div id="revenueModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('revenueModal')">&times;</span>
+            <h3>Add Revenue</h3>
+            <form id="revenueForm">
+                <select id="revenueBusiness" required>
+                    <option value="">Select Business</option>
+                </select>
+                <input type="number" id="revenueAmount" placeholder="Revenue Amount" step="0.01" required>
+                <input type="date" id="revenueDate" required>
+                <div class="form-group">
+                    <label for="revenueDescription">Description (Optional)</label>
+                    <textarea id="revenueDescription" placeholder="Additional details about this revenue"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="revenueAccount">Deposit to Account (Optional)</label>
+                    <select id="revenueAccount">
+                        <option value="">Select Account</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Revenue</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

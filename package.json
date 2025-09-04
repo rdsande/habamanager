@@ -1,0 +1,43 @@
+{
+  "name": "haba-manager",
+  "version": "1.0.0",
+  "description": "Smart Money Management System for tracking investments, expenses, and financial performance",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8888",
+    "serve": "npx http-server -p 8888 -c-1",
+    "dev": "npx live-server --port=8888 --no-browser",
+    "build": "echo 'No build process required for static files'",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": [
+    "finance",
+    "investment",
+    "expense-tracker",
+    "money-management",
+    "dashboard",
+    "analytics",
+    "business",
+    "portfolio"
+  ],
+  "author": "Haba Manager Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/haba-manager.git"
+  },
+  "homepage": "https://yourusername.github.io/haba-manager",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2",
+    "gh-pages": "^6.1.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
