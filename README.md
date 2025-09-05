@@ -1,74 +1,144 @@
-# Haba Manager - Smart Money Management System
+# Haba Manager
 
-A comprehensive web-based application for managing investments, expenses, and financial accounts with real-time analytics and performance tracking.
+A comprehensive financial management application for tracking investments, revenues, expenses, and account balances with detailed audit logging.
 
 ## Features
 
-- **Dashboard**: Overview of portfolio performance, active investments, and financial metrics
-- **Investment Management**: Track business investments with daily revenue monitoring
-- **Expense Tracking**: Categorize and monitor business expenses
-- **Account Management**: Manage multiple bank accounts with transaction history
-- **Performance Analytics**: Visual charts and break-even analysis
-- **Real-time Updates**: Live financial data with trend indicators
+### 📊 Financial Management
+- **Investment Tracking**: Record and monitor investment transactions
+- **Revenue Management**: Track daily revenues and returns
+- **Expense Monitoring**: Categorize and track business expenses
+- **Account Management**: Manage multiple financial accounts
+- **Balance Calculation**: Real-time remaining balance with revenue inclusion
 
-## Data Storage
+### 📈 Analytics & Reporting
+- **Dashboard Overview**: Visual summary of financial status
+- **Trend Analysis**: Track financial trends over time
+- **Detailed Reports**: Comprehensive financial reporting
 
-The application uses **browser localStorage** for data persistence. All data is stored locally in your browser and includes:
+### 🔍 Audit & Security
+- **Comprehensive Audit Logs**: Track all financial operations with monetary details
+- **User Activity Monitoring**: Monitor all system interactions
+- **Data Integrity**: Secure data handling and validation
+- **Rate Limiting**: API protection against abuse
 
-- **Investments**: Business investment records with daily revenues
-- **Expenses**: Categorized expense tracking
-- **Accounts**: Bank account information and balances
-- **Transactions**: Complete transaction history
-- **Daily Revenues**: Historical revenue data for performance analysis
+### 💻 Technical Features
+- **Full-Stack Application**: Node.js backend with modern frontend
+- **RESTful API**: Clean API architecture
+- **SQLite Database**: Lightweight, reliable data storage
+- **Responsive Design**: Works on desktop and mobile devices
+- **Real-time Updates**: Dynamic data updates without page refresh
 
-### Data Location
-- **Storage Type**: Browser localStorage (client-side)
-- **Data Format**: JSON objects
-- **Persistence**: Data persists until browser cache is cleared
-- **Backup**: Manual export/import functionality (can be added)
-
-### Important Notes
-- Data is stored locally in your browser
-- Clearing browser data will remove all records
-- Data is not automatically synced across devices
-- Consider regular backups for important data
-
-## Installation Guide for Windows
+## Quick Start
 
 ### Prerequisites
+- Node.js (version 14.0.0 or higher)
+- npm (comes with Node.js)
+- Git (optional, for cloning)
 
-1. **Web Browser**: Chrome, Firefox, Safari, or Edge (latest version)
-2. **Local Web Server** (choose one):
-   - Python (recommended)
-   - Node.js with http-server
-   - XAMPP/WAMP
-   - Live Server (VS Code extension)
+### Installation
 
-### Method 1: Using Python (Recommended)
-
-#### Step 1: Install Python
-1. Download Python from [python.org](https://www.python.org/downloads/)
-2. During installation, check "Add Python to PATH"
-3. Verify installation by opening Command Prompt and typing:
-   ```cmd
-   python --version
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/haba-manager.git
+   cd haba-manager
    ```
 
-#### Step 2: Download the Application
-1. Clone or download this repository
-2. Extract files to a folder (e.g., `C:\habamanager`)
+2. **Install dependencies**:
+   ```bash
+   # Backend dependencies
+   cd backend
+   npm install
+   
+   # Frontend dependencies
+   cd ..
+   npm install
+   ```
 
-#### Step 3: Run the Application
-1. Open Command Prompt as Administrator
-2. Navigate to the application folder:
-   ```cmd
-   cd C:\habamanager
+3. **Configure environment**:
+   ```bash
+   cd backend
+   cp .env.example .env
+   # Edit .env file with your configuration
    ```
-3. Start the web server:
-   ```cmd
-   python -m http.server 8888
+
+4. **Initialize database**:
+   ```bash
+   npm run init-db
    ```
-4. Open your browser and go to: `http://localhost:8888`
+
+### Running the Application
+
+#### Option 1: Quick Launch (Windows)
+```bash
+# Start both frontend and backend
+.\launch.bat
+```
+
+#### Option 2: Manual Start
+```bash
+# Terminal 1: Start backend
+cd backend
+npm start
+
+# Terminal 2: Start frontend
+npm run serve
+```
+
+### Access the Application
+- **Frontend**: http://localhost:8888
+- **Backend API**: http://localhost:3001
+
+## Project Structure
+
+```
+haba-manager/
+├── backend/                 # Node.js backend
+│   ├── routes/             # API routes
+│   ├── utils/              # Utility functions
+│   ├── database/           # Database files
+│   ├── server.js           # Main server file
+│   └── package.json        # Backend dependencies
+├── frontend/               # Frontend assets
+│   ├── index.html          # Main HTML file
+│   ├── script.js           # Frontend JavaScript
+│   └── styles.css          # Styling
+├── launch.bat              # Windows startup script
+├── start-server.bat        # Backend-only startup script
+├── package.json            # Frontend dependencies
+├── DEPLOYMENT.md           # Deployment guide
+└── README.md               # This file
+```
+
+## API Endpoints
+
+### Investments
+- `GET /api/investments` - Get all investments
+- `POST /api/investments` - Create new investment
+- `PUT /api/investments/:id` - Update investment
+- `DELETE /api/investments/:id` - Delete investment
+
+### Transactions
+- `GET /api/transactions` - Get all transactions
+- `POST /api/transactions` - Create new transaction
+- `PUT /api/transactions/:id` - Update transaction
+- `DELETE /api/transactions/:id` - Delete transaction
+
+### Expenses
+- `GET /api/expenses` - Get all expenses
+- `POST /api/expenses` - Create new expense
+- `PUT /api/expenses/:id` - Update expense
+- `DELETE /api/expenses/:id` - Delete expense
+
+### Accounts
+- `GET /api/accounts` - Get all accounts
+- `POST /api/accounts` - Create new account
+- `PUT /api/accounts/:id` - Update account
+- `DELETE /api/accounts/:id` - Delete account
+
+### Analytics
+- `GET /api/analytics` - Get financial analytics
+- `GET /api/audit-logs` - Get audit logs
 
 ### Method 2: Using Node.js
 

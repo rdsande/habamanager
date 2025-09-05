@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haba Manager - Smart Money Management</title>
+    <title>SMM - Smart Money Manager</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="chart.js"></script>
 </head>
 
 <body>
@@ -16,7 +16,7 @@
         <div class="sidebar">
             <div class="logo">
                 <div class="logo-icon">💰</div>
-                <span class="logo-text">Haba Manager</span>
+                <span class="logo-text">SMM | Investment Manager</span>
             </div>
 
             <nav class="sidebar-nav">
@@ -43,6 +43,10 @@
                 <a href="#" class="nav-item" data-tab="performance">
                     <i class="fas fa-trophy"></i>
                     <span>Performance</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="audit-logs">
+                    <i class="fas fa-history"></i>
+                    <span>Audit Logs</span>
                 </a>
             </nav>
 
@@ -84,11 +88,11 @@
                             <h3>Quick Actions</h3>
                         </div>
                         <div class="action-buttons">
-                            <button class="action-btn primary" onclick="showAddInvestment()">
+                            <button class="action-btn primary" id="addInvestmentBtn">
                                 <i class="fas fa-plus"></i>
                                 <span>Add Investment</span>
                             </button>
-                            <button class="action-btn secondary" onclick="showAddExpense()">
+                            <button class="action-btn secondary" id="addExpenseBtn">
                                 <i class="fas fa-receipt"></i>
                                 <span>Add Expense</span>
                             </button>
@@ -241,7 +245,7 @@
                     <div class="performance-summary-card">
                         <div class="performance-summary-header">
                             <h3>Top Performers</h3>
-                            <a href="#" class="view-all-link" onclick="document.querySelector('[data-tab=performance]').click()">View All</a>
+                            <a href="#" class="view-all-link" id="viewAllPerformanceLink">View All</a>
                         </div>
                         <div class="performance-summary-list" id="dashboardPerformanceList">
                             <!-- Performance summary will be populated here -->
@@ -254,7 +258,7 @@
             <div id="investments" class="tab-content">
                 <div class="section-header">
                     <h2>Investment Portfolio</h2>
-                    <button class="btn-primary" onclick="showAddInvestment()">Add Investment</button>
+                    <button class="btn-primary" id="addInvestmentBtn2">Add Investment</button>
                 </div>
                 <div id="investmentsList" class="investments-list"></div>
             </div>
@@ -263,7 +267,7 @@
             <div id="expenses" class="tab-content">
                 <div class="section-header">
                     <h2>Expense Tracking</h2>
-                    <button class="btn-primary" onclick="showAddExpense()">Add Expense</button>
+                    <button class="btn-primary" id="addExpenseBtn2">Add Expense</button>
                 </div>
                 <div class="expense-filters">
                     <select id="expenseFilter">
@@ -280,7 +284,7 @@
             <div id="accounts" class="tab-content">
                 <div class="section-header">
                     <h2>Bank Accounts</h2>
-                    <button class="btn-primary" onclick="showAddAccount()">Add Account</button>
+                    <button class="btn-primary" id="addAccountBtn">Add Account</button>
                 </div>
 
                 <div class="accounts-overview">
@@ -292,11 +296,12 @@
                 <div class="transactions-section">
                     <div class="section-header">
                         <h2>Recent Transactions</h2>
+                        <button class="btn-danger" id="bulkDeleteTransactionsBtn" style="margin-right: 10px;">Clear All Transactions</button>
                         <div class="transaction-filters">
-                            <select id="accountFilter" onchange="filterTransactions()">
+                            <select id="accountFilter">
                                 <option value="all">All Accounts</option>
                             </select>
-                            <select id="transactionTypeFilter" onchange="filterTransactions()">
+                            <select id="transactionTypeFilter">
                                 <option value="all">All Types</option>
                                 <option value="deposit">Deposits</option>
                                 <option value="withdrawal">Withdrawals</option>
@@ -342,15 +347,52 @@
                     <!-- Performance data will be populated here -->
                 </div>
             </div>
+
+            <!-- Audit Logs Tab -->
+            <div id="audit-logs" class="tab-content">
+                <h2>Audit Logs</h2>
+                <div class="audit-logs-header">
+                    <div class="audit-filters">
+                        <select id="auditTableFilter">
+                            <option value="">All Tables</option>
+                            <option value="investments">Investments</option>
+                            <option value="accounts">Accounts</option>
+                            <option value="expenses">Expenses</option>
+                            <option value="daily_revenues">Daily Revenues</option>
+                            <option value="transactions">Transactions</option>
+                        </select>
+                        <select id="auditActionFilter">
+                            <option value="">All Actions</option>
+                            <option value="CREATE">Create</option>
+                            <option value="UPDATE">Update</option>
+                            <option value="DELETE">Delete</option>
+                        </select>
+                        <button id="refreshAuditLogs" class="btn btn-secondary">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                <div class="audit-logs-content">
+                    <div id="auditLogsList" class="audit-logs-list">
+                        <!-- Audit logs will be populated here -->
+                    </div>
+                    <div class="audit-pagination">
+                        <button id="prevAuditPage" class="btn btn-secondary" disabled>Previous</button>
+                        <span id="auditPageInfo">Page 1</span>
+                        <button id="nextAuditPage" class="btn btn-secondary" disabled>Next</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Modal for Adding Investment -->
     <div id="investmentModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('investmentModal')">&times;</span>
-            <h3>Add New Investment</h3>
+            <span class="close" id="closeInvestmentModal">&times;</span>
+            <h3 id="investmentModalTitle">Add New Investment</h3>
             <form id="investmentForm">
+                <input type="hidden" id="editInvestmentId">
                 <input type="text" id="businessName" placeholder="Business Name" required>
                 <select id="businessType" required>
                     <option value="">Select Business Type</option>
@@ -368,7 +410,7 @@
                 <input type="number" id="dailyRevenue" placeholder="Expected Daily Revenue" step="0.01" required>
                 <input type="date" id="startDate" required>
                 <textarea id="investmentNotes" placeholder="Notes (optional)"></textarea>
-                <button type="submit">Add Investment</button>
+                <button type="submit" id="investmentSubmitBtn">Add Investment</button>
             </form>
         </div>
     </div>
@@ -376,9 +418,10 @@
     <!-- Modal for Adding Expense -->
     <div id="expenseModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('expenseModal')">&times;</span>
-            <h3>Add Expense</h3>
+            <span class="close" id="closeExpenseModal">&times;</span>
+            <h3 id="expenseModalTitle">Add Expense</h3>
             <form id="expenseForm">
+                <input type="hidden" id="editExpenseId">
                 <input type="text" id="expenseDescription" placeholder="Expense Description" required>
                 <input type="number" id="expenseAmount" placeholder="Amount" step="0.01" required>
                 <select id="expenseAccount" required>
@@ -399,7 +442,7 @@
                 </select>
                 <input type="date" id="expenseDate" required>
                 <textarea id="expenseNotes" placeholder="Notes (optional)"></textarea>
-                <button type="submit">Add Expense</button>
+                <button type="submit" id="expenseSubmitBtn">Add Expense</button>
             </form>
         </div>
     </div>
@@ -407,9 +450,10 @@
     <!-- Modal for Adding Bank Account -->
     <div id="accountModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('accountModal')">&times;</span>
-            <h3>Add Bank Account</h3>
+            <span class="close" id="closeAccountModal">&times;</span>
+            <h3 id="accountModalTitle">Add Bank Account</h3>
             <form id="accountForm">
+                <input type="hidden" id="editAccountId">
                 <input type="text" id="accountName" placeholder="Account Name" required>
                 <select id="accountType" required>
                     <option value="">Select Account Type</option>
@@ -421,7 +465,7 @@
                 <input type="text" id="bankName" placeholder="Bank Name" required>
                 <input type="number" id="initialBalance" placeholder="Initial Balance" step="0.01" required>
                 <textarea id="accountNotes" placeholder="Notes (optional)"></textarea>
-                <button type="submit">Add Account</button>
+                <button type="submit" id="accountSubmitBtn">Add Account</button>
             </form>
         </div>
     </div>
@@ -429,7 +473,7 @@
     <!-- Modal for Deposit -->
     <div id="depositModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('depositModal')">&times;</span>
+            <span class="close" id="closeDepositModal">&times;</span>
             <h3>Make Deposit</h3>
             <form id="depositForm">
                 <select id="depositAccount" required>
@@ -447,7 +491,7 @@
     <!-- Modal for Withdrawal -->
     <div id="withdrawalModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('withdrawalModal')">&times;</span>
+            <span class="close" id="closeWithdrawalModal">&times;</span>
             <h3>Make Withdrawal</h3>
             <form id="withdrawalForm">
                 <select id="withdrawalAccount" required>
@@ -465,7 +509,7 @@
     <!-- Modal for Adding Revenue -->
     <div id="revenueModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('revenueModal')">&times;</span>
+            <span class="close" id="closeRevenueModal">&times;</span>
             <h3>Add Revenue</h3>
             <form id="revenueForm">
                 <select id="revenueBusiness" required>
@@ -488,6 +532,25 @@
         </div>
     </div>
 
+    <!-- Modal for Investment Details -->
+    <div id="investmentDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeInvestmentDetailsModal">&times;</span>
+            <h3 id="investmentDetailsTitle">Investment Details</h3>
+            <div id="investmentDetailsContent">
+                <div class="investment-info">
+                    <h4>Investment Information</h4>
+                    <div id="investmentBasicInfo"></div>
+                </div>
+                <div class="daily-revenues-section">
+                    <h4>Daily Revenues</h4>
+                    <div id="dailyRevenuesList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="api.js"></script>
     <script src="script.js"></script>
 </body>
 

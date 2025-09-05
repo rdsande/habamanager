@@ -1,48 +1,411 @@
-# Deployment Guide for Haba Manager
+# Haba Manager - Deployment Guide
 
-This guide provides step-by-step instructions for deploying Haba Manager to various platforms.
+This guide will help you deploy the Haba Manager application on a new computer or server.
 
-## GitHub Deployment
+## Prerequisites
 
-### Prerequisites
-- Git installed on your system
-- GitHub account
-- Command line access (Command Prompt, PowerShell, or Terminal)
+### Required Software
+- **Node.js** (version 14.0.0 or higher)
+- **npm** (comes with Node.js)
+- **Git** (for cloning the repository)
+
+### System Requirements
+- **Operating System**: Windows, macOS, or Linux
+- **RAM**: Minimum 2GB
+- **Storage**: At least 500MB free space
+- **Network**: Internet connection for initial setup
+
+## Installation Steps
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/haba-manager.git
+cd haba-manager
+```
+
+### 2. Backend Setup
+
+#### Install Backend Dependencies
+```bash
+cd backend
+npm install
+```
+
+#### Configure Environment Variables
+1. Copy the environment template:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit the `.env` file with your specific configuration:
+   ```env
+   PORT=3001
+   NODE_ENV=production
+   FRONTEND_URL=http://localhost:8888
+   DB_PATH=./database/haba_manager.db
+   RATE_LIMIT_WINDOW_MS=900000
+   RATE_LIMIT_MAX_REQUESTS=100
+   LOG_LEVEL=info
+   ```
+
+#### Initialize the Database
+```bash
+npm run init-db
+```
+
+### 3. Frontend Setup
+
+#### Install Frontend Dependencies
+```bash
+cd ..
+npm install
+```
+
+## Running the Application
+
+### Option 1: Using Startup Scripts (Recommended)
+
+#### Windows
+```bash
+# Start both frontend and backend
+.\launch.bat
+
+# Or start backend only
+.\start-server.bat
+```
+
+#### Linux/macOS
+```bash
+# Make scripts executable
+chmod +x launch.ps1 start-server.ps1
+
+# Start both frontend and backend
+./launch.ps1
+
+# Or start backend only
+./start-server.ps1
+```
+
+### Option 2: Manual Startup
+
+#### Start Backend Server
+```bash
+cd backend
+npm start
+```
+
+#### Start Frontend Server (in a new terminal)
+```bash
+npm run serve
+```
+
+### 3. Access the Application
+Open your web browser and navigate to:
+- **Frontend**: http://localhost:8888
+- **Backend API**: http://localhost:3001
+
+## Production Deployment
+
+### Option 1: Traditional VPS/Server Deployment
+
+#### Prerequisites
+- Ubuntu/CentOS server with root access
+- Domain name (optional)
+- SSL certificate (recommended)
+
+#### Step 1: Server Setup
+
+1. Update system packages:
+   ```bash
+   sudo apt update && sudo apt upgrade -y
+   ```
+
+2. Install Node.js:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   ```
+
+3. Install PM2 (Process Manager):
+   ```bash
+   sudo npm install -g pm2
+   ```
+
+#### Step 2: Deploy Application
+
+1. Clone or upload your application:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/haba-manager.git
+   cd haba-manager
+   ```
+
+2. Install backend dependencies:
+   ```bash
+   cd backend
+   npm install --production
+   ```
+
+3. Set up environment:
+   ```bash
+   cp .env.example .env
+   # Edit .env with production values
+   nano .env
+   ```
+
+4. Initialize database:
+   ```bash
+   npm run init-db
+   ```
+
+5. Start with PM2:
+   ```bash
+   pm2 start server.js --name "haba-manager"
+   pm2 startup
+   pm2 save
+   ```
+
+#### Step 3: Configure Reverse Proxy (Nginx)
+
+1. Install Nginx:
+   ```bash
+   sudo apt install nginx -y
+   ```
+
+2. Create Nginx configuration:
+   ```bash
+   sudo nano /etc/nginx/sites-available/haba-manager
+   ```
+
+3. Add configuration:
+   ```nginx
+   server {
+       listen 80;
+       server_name your-domain.com;
+       
+       location / {
+           proxy_pass http://localhost:3001;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+4. Enable site:
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/haba-manager /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+
+### Option 2: Docker Deployment
+
+#### Step 1: Create Dockerfile
+
+Create `Dockerfile` in the project root:
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy backend package files
+COPY backend/package*.json ./backend/
+
+# Install backend dependencies
+RUN cd backend && npm ci --only=production
+
+# Copy application files
+COPY . .
+
+# Create database directory
+RUN mkdir -p backend/database
+
+# Initialize database
+RUN cd backend && npm run init-db
+
+# Expose port
+EXPOSE 3001
+
+# Start application
+CMD ["node", "backend/server.js"]
+```
+
+#### Step 2: Create docker-compose.yml
+
+```yaml
+version: '3.8'
+services:
+  haba-manager:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    volumes:
+      - ./backend/database:/app/backend/database
+    restart: unless-stopped
+```
+
+#### Step 3: Deploy with Docker
+
+```bash
+docker-compose up -d
+```
+
+### Option 3: Cloud Platform Deployment
+
+#### Heroku Deployment
+
+1. Install Heroku CLI
+2. Create Heroku app:
+   ```bash
+   heroku create your-app-name
+   ```
+
+3. Add buildpack:
+   ```bash
+   heroku buildpacks:set heroku/nodejs
+   ```
+
+4. Set environment variables:
+   ```bash
+   heroku config:set NODE_ENV=production
+   heroku config:set PORT=3001
+   ```
+
+5. Create Procfile:
+   ```
+   web: node backend/server.js
+   ```
+
+6. Deploy:
+   ```bash
+   git push heroku main
+   ```
+
+#### Railway/Render Deployment
+
+1. Connect your GitHub repository
+2. Set build command: `cd backend && npm install`
+3. Set start command: `node backend/server.js`
+4. Set environment variables as needed
+
+## Environment Variables
+
+Required environment variables for production:
+
+```env
+NODE_ENV=production
+PORT=3001
+FRONTEND_URL=https://your-domain.com
+DB_PATH=./database/haba_manager.db
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+```
+
+## Database Backup
+
+Regular database backups are recommended:
+
+```bash
+# Create backup
+cp backend/database/haba_manager.db backup/haba_manager_$(date +%Y%m%d_%H%M%S).db
+
+# Restore backup
+cp backup/haba_manager_YYYYMMDD_HHMMSS.db backend/database/haba_manager.db
+```
+
+## Monitoring and Maintenance
+
+### PM2 Commands
+
+```bash
+# View logs
+pm2 logs haba-manager
+
+# Restart application
+pm2 restart haba-manager
+
+# Stop application
+pm2 stop haba-manager
+
+# View status
+pm2 status
+```
+
+### Health Check
+
+The application includes a health check endpoint:
+```
+GET /api/health
+```
+
+## Security Considerations
+
+1. **HTTPS**: Always use HTTPS in production
+2. **Environment Variables**: Never commit .env files
+3. **Rate Limiting**: Configured by default
+4. **CORS**: Configure appropriate origins
+5. **Database**: Regular backups and secure file permissions
+6. **Updates**: Keep dependencies updated
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Port already in use**:
+   ```bash
+   lsof -ti:3001 | xargs kill -9
+   ```
+
+2. **Database permission errors**:
+   ```bash
+   chmod 755 backend/database
+   chmod 644 backend/database/haba_manager.db
+   ```
+
+3. **Module not found errors**:
+   ```bash
+   cd backend && npm install
+   ```
+
+### Logs Location
+
+- PM2 logs: `~/.pm2/logs/`
+- Application logs: Console output
+- Nginx logs: `/var/log/nginx/`
+
+## GitHub Deployment (Static Hosting)
+
+**Note**: GitHub Pages only supports static hosting. For full functionality, use one of the server deployment options above.
 
 ### Step 1: Initialize Git Repository
 
-1. Open Command Prompt or PowerShell in the project directory
-2. Initialize Git repository:
+1. Initialize Git repository:
    ```bash
    git init
    ```
 
-3. Add all files to Git:
+2. Add all files:
    ```bash
    git add .
    ```
 
-4. Create initial commit:
+3. Create initial commit:
    ```bash
-   git commit -m "Initial commit: Haba Manager application"
+   git commit -m "Initial commit: Haba Manager full-stack application"
    ```
 
 ### Step 2: Create GitHub Repository
 
-1. Go to [GitHub.com](https://github.com) and sign in
-2. Click the "+" icon in the top right corner
-3. Select "New repository"
-4. Fill in repository details:
-   - **Repository name**: `haba-manager`
-   - **Description**: `Smart Money Management System`
-   - **Visibility**: Public (for GitHub Pages)
-   - **DO NOT** initialize with README, .gitignore, or license (already included)
-5. Click "Create repository"
-
-### Step 3: Connect Local Repository to GitHub
-
-1. Copy the repository URL from GitHub
-2. Add remote origin:
+1. Create new repository on GitHub
+2. Connect local repository:
    ```bash
    git remote add origin https://github.com/YOUR_USERNAME/haba-manager.git
    ```
