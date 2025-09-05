@@ -256,6 +256,41 @@ class ApiService {
         this.invalidateCache(['transactions', 'accounts']);
     }
 
+    async bulkDeleteTransactions() {
+        const result = await this.request('/transactions/bulk', {
+            method: 'DELETE'
+        });
+        this.invalidateCache(['transactions', 'accounts']);
+        return result;
+    }
+
+    async deleteAccount(accountId) {
+        const response = await fetch(`${this.baseURL}/accounts/${accountId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to delete account');
+        }
+        
+        return await response.json();
+    }
+
+    async getAuditLogs(params = {}) {
+        const queryParams = new URLSearchParams(params).toString();
+        const response = await fetch(`${this.baseURL}/audit-logs?${queryParams}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch audit logs');
+        }
+        
+        return await response.json();
+    }
+
     async getTransactionSummary(filters = {}) {
         const queryParams = new URLSearchParams(filters).toString();
         const endpoint = queryParams ? `/transactions/summary/type?${queryParams}` : '/transactions/summary/type';

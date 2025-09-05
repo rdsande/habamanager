@@ -31,7 +31,27 @@ app.use('/api/', limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:8888',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow any localhost or 127.0.0.1 origin
+    if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
+      return callback(null, true);
+    }
+    
+    // Allow file:// protocol for desktop shortcuts
+    if (origin.startsWith('file://')) {
+      return callback(null, true);
+    }
+    
+    // Allow specific frontend URL from environment
+    if (origin === process.env.FRONTEND_URL) {
+      return callback(null, true);
+    }
+    
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true
 }));
 
@@ -42,10 +62,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Logging middleware
 app.use(morgan('combined'));
 
-// Serve static files from frontend
-app.use(express.static(path.join(__dirname, '../')));
-
-// API Routes
+// API Routes (must come before static file serving)
 app.use('/api/investments', investmentRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/accounts', accountRoutes);
@@ -53,6 +70,9 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/daily-revenues', dailyRevenueRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/audit-logs', auditLogRoutes);
+
+// Serve static files from frontend (after API routes)
+app.use(express.static(path.join(__dirname, '../')));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

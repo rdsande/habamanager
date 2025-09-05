@@ -7,6 +7,7 @@
     "start": "python -m http.server 8888",
     "serve": "npx http-server -p 8888 -c-1",
     "dev": "npx live-server --port=8888 --no-browser",
+    "start-full": "concurrently \"cd backend && node server.js\" \"npx http-server -p 8888 -c-1 -o\"",
     "build": "echo 'No build process required for static files'",
     "deploy": "gh-pages -d ."
   },
@@ -30,7 +31,8 @@
   "devDependencies": {
     "http-server": "^14.1.1",
     "live-server": "^1.2.2",
-    "gh-pages": "^6.1.0"
+    "gh-pages": "^6.1.0",
+    "concurrently": "^8.2.2"
   },
   "engines": {
     "node": ">=14.0.0"

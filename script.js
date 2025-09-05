@@ -329,6 +329,12 @@ function updateDashboard() {
     updateBalanceTrends(startingBalance, remainingBalance);
     updateRevenueTrend(totalRevenue);
     
+    // Update stat card trends
+    updateTotalInvestedTrend(totalPortfolio);
+    updateActiveInvestmentsTrend(activeInvestments);
+    updateMonthlyExpensesTrend(monthlyExpenses);
+    updateMonthlyROITrend(monthlyROI);
+    
     // Update account balance if element exists
     const accountBalanceElement = document.getElementById('totalAccountBalance');
     if (accountBalanceElement) {
@@ -435,6 +441,163 @@ function updateRevenueTrend(totalRevenue) {
         } else {
             revenueTrendElement.textContent = 'No Data';
             revenueTrendElement.className = 'stat-trend';
+        }
+    }
+}
+
+// Stat card trend calculation functions
+function updateTotalInvestedTrend(currentTotal) {
+    const trendElement = document.getElementById('totalInvestedTrend');
+    if (!trendElement) return;
+    
+    // Calculate trend based on previous month's data
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    
+    const lastMonthInvestments = investments.filter(inv => {
+        const invDate = new Date(inv.date);
+        return invDate >= lastMonth && invDate <= lastMonthEnd;
+    });
+    
+    const lastMonthTotal = lastMonthInvestments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+    
+    if (currentTotal === 0 && lastMonthTotal === 0) {
+        trendElement.textContent = 'No Data';
+        trendElement.className = 'stat-trend';
+    } else if (lastMonthTotal === 0) {
+        trendElement.textContent = 'New';
+        trendElement.className = 'stat-trend up';
+    } else {
+        const changePercent = ((currentTotal - lastMonthTotal) / lastMonthTotal) * 100;
+        const formattedPercent = formatNumber(Math.abs(changePercent), 1);
+        
+        if (changePercent > 0) {
+            trendElement.textContent = `+${formattedPercent}%`;
+            trendElement.className = 'stat-trend up';
+        } else if (changePercent < 0) {
+            trendElement.textContent = `-${formattedPercent}%`;
+            trendElement.className = 'stat-trend down';
+        } else {
+            trendElement.textContent = '0%';
+            trendElement.className = 'stat-trend';
+        }
+    }
+}
+
+function updateActiveInvestmentsTrend(currentCount) {
+    const trendElement = document.getElementById('activeInvestmentsTrend');
+    if (!trendElement) return;
+    
+    // Calculate trend based on previous month's investment count
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    
+    const lastMonthCount = investments.filter(inv => {
+        const invDate = new Date(inv.date);
+        return invDate <= lastMonthEnd;
+    }).length;
+    
+    if (currentCount === 0 && lastMonthCount === 0) {
+        trendElement.textContent = 'No Data';
+        trendElement.className = 'stat-trend';
+    } else if (lastMonthCount === 0) {
+        trendElement.textContent = 'New';
+        trendElement.className = 'stat-trend up';
+    } else {
+        const change = currentCount - lastMonthCount;
+        
+        if (change > 0) {
+            trendElement.textContent = `+${change}`;
+            trendElement.className = 'stat-trend up';
+        } else if (change < 0) {
+            trendElement.textContent = `${change}`;
+            trendElement.className = 'stat-trend down';
+        } else {
+            trendElement.textContent = 'Same';
+            trendElement.className = 'stat-trend';
+        }
+    }
+}
+
+function updateMonthlyExpensesTrend(currentExpenses) {
+    const trendElement = document.getElementById('monthlyExpensesTrend');
+    if (!trendElement) return;
+    
+    // Calculate trend based on previous month's expenses
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    
+    const lastMonthExpenses = expenses.filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate >= lastMonth && expDate <= lastMonthEnd;
+    }).reduce((sum, exp) => sum + (exp.amount || 0), 0);
+    
+    if (currentExpenses === 0 && lastMonthExpenses === 0) {
+        trendElement.textContent = 'No Data';
+        trendElement.className = 'stat-trend';
+    } else if (lastMonthExpenses === 0) {
+        trendElement.textContent = 'New';
+        trendElement.className = 'stat-trend down';
+    } else {
+        const changePercent = ((currentExpenses - lastMonthExpenses) / lastMonthExpenses) * 100;
+        const formattedPercent = formatNumber(Math.abs(changePercent), 1);
+        
+        if (changePercent > 0) {
+            trendElement.textContent = `+${formattedPercent}%`;
+            trendElement.className = 'stat-trend down'; // Higher expenses are bad
+        } else if (changePercent < 0) {
+            trendElement.textContent = `-${formattedPercent}%`;
+            trendElement.className = 'stat-trend up'; // Lower expenses are good
+        } else {
+            trendElement.textContent = '0%';
+            trendElement.className = 'stat-trend';
+        }
+    }
+}
+
+function updateMonthlyROITrend(currentROI) {
+    const trendElement = document.getElementById('monthlyROITrend');
+    if (!trendElement) return;
+    
+    // Calculate trend based on previous month's ROI
+    const now = new Date();
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
+    
+    // Calculate last month's ROI
+    const lastMonthInvestments = investments.filter(inv => {
+        const invDate = new Date(inv.date);
+        return invDate <= lastMonthEnd;
+    });
+    
+    const lastMonthInvested = lastMonthInvestments.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+    const lastMonthReturns = lastMonthInvestments.reduce((sum, inv) => sum + (inv.totalReturns || 0), 0);
+    const lastMonthROI = lastMonthInvested > 0 ? (lastMonthReturns / lastMonthInvested) * 100 : 0;
+    
+    const currentROINum = parseFloat(currentROI) || 0;
+    
+    if (currentROINum === 0 && lastMonthROI === 0) {
+        trendElement.textContent = 'No Data';
+        trendElement.className = 'stat-trend';
+    } else if (lastMonthROI === 0) {
+        trendElement.textContent = 'New';
+        trendElement.className = currentROINum > 0 ? 'stat-trend up' : 'stat-trend';
+    } else {
+        const change = currentROINum - lastMonthROI;
+        const formattedChange = formatNumber(Math.abs(change), 1);
+        
+        if (change > 0) {
+            trendElement.textContent = `+${formattedChange}%`;
+            trendElement.className = 'stat-trend up';
+        } else if (change < 0) {
+            trendElement.textContent = `-${formattedChange}%`;
+            trendElement.className = 'stat-trend down';
+        } else {
+            trendElement.textContent = '0%';
+            trendElement.className = 'stat-trend';
         }
     }
 }
@@ -604,17 +767,7 @@ async function deleteInvestment(investmentId) {
     try {
         showLoadingState(true);
         
-        const response = await fetch(`/api/investments/${investmentId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete investment');
-        }
+        await apiService.deleteInvestment(investmentId);
 
         // Remove from local array
         const index = investments.findIndex(inv => inv.id === investmentId);
@@ -699,18 +852,7 @@ async function bulkDeleteTransactions() {
     }
     
     try {
-        const response = await fetch('/api/transactions/bulk', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Failed to delete transactions');
-        }
-        
-        const result = await response.json();
+        const result = await apiService.bulkDeleteTransactions();
         
         // Show success message
         alert(`Successfully deleted ${result.deletedCount} transactions`);
@@ -735,20 +877,15 @@ async function loadAuditLogs(page = 1) {
         const tableFilter = document.getElementById('auditTableFilter').value;
         const actionFilter = document.getElementById('auditActionFilter').value;
         
-        const params = new URLSearchParams({
+        const params = {
             page: page,
             limit: auditLogsPerPage
-        });
+        };
         
-        if (tableFilter) params.append('table_name', tableFilter);
-        if (actionFilter) params.append('action', actionFilter);
+        if (tableFilter) params.table_name = tableFilter;
+        if (actionFilter) params.action = actionFilter;
         
-        const response = await fetch(`/api/audit-logs?${params}`);
-        if (!response.ok) {
-            throw new Error('Failed to fetch audit logs');
-        }
-        
-        const data = await response.json();
+        const data = await apiService.getAuditLogs(params);
         currentAuditPage = page;
         
         renderAuditLogs(data.logs || []);
@@ -1470,17 +1607,7 @@ async function deleteExpense(expenseId) {
     try {
         showLoadingState(true);
         
-        const response = await fetch(`/api/expenses/${expenseId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete expense');
-        }
+        await apiService.deleteExpense(expenseId);
 
         // Remove from local array
         const index = expenses.findIndex(exp => exp.id === expenseId);
@@ -1942,17 +2069,7 @@ async function deleteAccount(accountId) {
     try {
         showLoadingState(true);
         
-        const response = await fetch(`/api/accounts/${accountId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to delete account');
-        }
+        await apiService.deleteAccount(accountId);
 
         // Remove from local array
         const index = accounts.findIndex(acc => acc.id === accountId);

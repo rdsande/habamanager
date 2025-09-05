@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Launching Haba Manager...</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">💰</div>
+        <h1 class="title">Haba Manager</h1>
+        <p class="subtitle">Smart Money Management System</p>
+        <div class="spinner"></div>
+        <p id="status">Checking server status...</p>
+        
+        <div class="instructions">
+            <h3>🚀 Quick Start Instructions:</h3>
+            <p><strong>Option 1 - Smart Launcher (Recommended):</strong></p>
+            <p>• Double-click <code>launch-app.bat</code> or <code>launch-app.ps1</code></p>
+            <p>• Everything starts automatically - no manual steps needed!</p>
+            
+            <p><strong>Option 2 - Manual Launch:</strong></p>
+            <p>• Double-click <code>start-app.bat</code> or <code>start-app.ps1</code></p>
+            <p>• Wait for servers to start, then click the button below:</p>
+            <a href="http://localhost:8888" class="button" id="launchBtn">🌐 Launch Application</a>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border-left: 4px solid #4CAF50;">
+                <p><strong>💡 Pro Tip:</strong> Create a desktop shortcut to <code>launch-app.bat</code> for one-click access!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let attempts = 0;
+        const maxAttempts = 15;
+        let backendReady = false;
+        let frontendReady = false;
+        
+        function updateStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            if (isError) {
+                statusEl.style.color = '#ff6b6b';
+            } else {
+                statusEl.style.color = 'white';
+            }
+        }
+        
+        async function checkBackend() {
+            try {
+                const response = await fetch('http://localhost:3001/api/health', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                return response.ok;
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        async function checkFrontend() {
+            try {
+                const response = await fetch('http://localhost:8888', {
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                });
+                return true; // If no error thrown, server is responding
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        async function checkServers() {
+            attempts++;
+            
+            // Check both servers
+            const [backendStatus, frontendStatus] = await Promise.all([
+                checkBackend(),
+                checkFrontend()
+            ]);
+            
+            backendReady = backendStatus;
+            frontendReady = frontendStatus;
+            
+            if (backendReady && frontendReady) {
+                updateStatus('🎉 Both servers are running! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = 'http://localhost:8888';
+                }, 1500);
+                return;
+            }
+            
+            // Provide detailed status
+            let statusMessage = `Checking servers... (${attempts}/${maxAttempts})\n`;
+            statusMessage += `Backend (port 3001): ${backendReady ? '✓ Ready' : '⏳ Starting...'}\n`;
+            statusMessage += `Frontend (port 8888): ${frontendReady ? '✓ Ready' : '⏳ Starting...'}`;
+            
+            if (attempts < maxAttempts) {
+                updateStatus(statusMessage);
+                setTimeout(checkServers, 2000);
+            } else {
+                // Final attempt failed
+                let errorMessage = '⚠️ Servers not detected after ' + maxAttempts + ' attempts\n\n';
+                
+                if (!backendReady && !frontendReady) {
+                    errorMessage += '❌ Neither server is running\n';
+                    errorMessage += 'Please run: launch-app.bat or launch-app.ps1';
+                } else if (!backendReady) {
+                    errorMessage += '❌ Backend server (port 3001) not responding\n';
+                    errorMessage += 'Database or API issues detected';
+                } else if (!frontendReady) {
+                    errorMessage += '❌ Frontend server (port 8888) not responding\n';
+                    errorMessage += 'Web server startup failed';
+                }
+                
+                updateStatus(errorMessage, true);
+                
+                // Show the launch button as a fallback
+                document.getElementById('launchBtn').style.display = 'inline-block';
+                document.getElementById('launchBtn').style.opacity = '1';
+            }
+        }
+        
+        // Enhanced launch button functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const launchBtn = document.getElementById('launchBtn');
+            launchBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Try to open the app, but also recheck servers
+                window.open('http://localhost:8888', '_blank');
+                
+                // Reset and recheck
+                attempts = 0;
+                setTimeout(checkServers, 1000);
+            });
+        });
+        
+        // Start checking after a short delay
+        setTimeout(checkServers, 1000);
+    </script>
+</body>
+</html>
