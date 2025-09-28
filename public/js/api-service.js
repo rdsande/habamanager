@@ -87,6 +87,24 @@ class ApiService {
         return this.get(`/investments/${id}`);
     }
 
+    // Investment Returns API methods
+    async getInvestmentReturns(investmentId = null) {
+        const endpoint = investmentId ? `/investment-returns?investment_id=${investmentId}` : '/investment-returns';
+        return this.get(endpoint);
+    }
+
+    async createInvestmentReturn(data) {
+        return this.post('/investment-returns', data);
+    }
+
+    async updateInvestmentReturn(id, data) {
+        return this.put(`/investment-returns/${id}`, data);
+    }
+
+    async deleteInvestmentReturn(id) {
+        return this.delete(`/investment-returns/${id}`);
+    }
+
     // Expense API methods
     async getExpenses() {
         return this.get('/expenses');
@@ -171,18 +189,20 @@ class ApiService {
     // Load all data at once
     async loadAllData() {
         try {
-            const [investments, expenses, accounts, transactions] = await Promise.all([
+            const [investments, expenses, accounts, transactions, investmentReturns] = await Promise.all([
                 this.getInvestments(),
                 this.getExpenses(),
                 this.getAccounts(),
-                this.getTransactions()
+                this.getTransactions(),
+                this.getInvestmentReturns()
             ]);
 
             return {
                 investments: investments.data || investments,
                 expenses: expenses.data || expenses,
                 accounts: accounts.data || accounts,
-                transactions: transactions.data || transactions
+                transactions: transactions.data || transactions,
+                investmentReturns: investmentReturns.data || investmentReturns
             };
         } catch (error) {
             console.error('Error loading all data:', error);

@@ -1,7 +1,378 @@
 // Data Storage - Now loaded from API
 let investments = [];
 let expenses = [];
-let dailyRevenues = {};
+let dailyRevenues = {}
+
+// Investment Returns Functions
+let currentInvestmentId = null;
+let investmentReturns = [];
+
+function showAddReturn(investmentId) {
+    if (!investmentId) {
+        console.error('No investment ID provided');
+        return;
+    }
+    
+    // Set the current investment ID
+    currentInvestmentId = investmentId;
+    
+    // Reset form
+    document.getElementById('returnForm').reset();
+    document.getElementById('returnId').value = '';
+    document.getElementById('returnInvestmentId').value = investmentId;
+    
+    // Set today's date as default
+    document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+    
+    // Set modal title and button text for adding
+    document.getElementById('returnModalTitle').textContent = 'Add Return';
+    document.getElementById('returnSubmitBtn').textContent = 'Add Return';
+    
+    const modal = document.getElementById('returnModal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+function showEditReturn(returnId) {
+    const returnData = investmentReturns.find(ret => ret.id === returnId);
+    if (!returnData) {
+        console.error('Return not found:', returnId);
+        return;
+    }
+    
+    // Populate form with existing return data
+    document.getElementById('returnId').value = returnData.id;
+    document.getElementById('returnInvestmentId').value = returnData.investment_id;
+    document.getElementById('returnDate').value = returnData.return_date || '';
+    document.getElementById('returnAmount').value = returnData.amount || '';
+    document.getElementById('periodType').value = returnData.period_type || '';
+    document.getElementById('returnComment').value = returnData.comment || '';
+    
+    // Set modal title and button text for editing
+    document.getElementById('returnModalTitle').textContent = 'Edit Return';
+    document.getElementById('returnSubmitBtn').textContent = 'Update Return';
+    
+    const modal = document.getElementById('returnModal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+}
+
+// Return Form Handler
+const returnForm = document.getElementById('returnForm');
+if (returnForm) {
+    returnForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const returnId = document.getElementById('returnId').value;
+        
+        if (returnId) {
+            await updateReturn(returnId);
+        } else {
+            await addReturn();
+        }
+    });
+}
+
+async function addReturn() {
+    try {
+        showLoadingState(true);
+        
+        const returnData = {
+            investment_id: document.getElementById('returnInvestmentId').value,
+            return_date: document.getElementById('returnDate').value,
+            amount: getNumericValue(document.getElementById('returnAmount')),
+            period_type: document.getElementById('periodType').value,
+            comment: document.getElementById('returnComment').value
+        };
+        
+        const response = await fetch('/api/investment-returns', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(returnData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to add return');
+        }
+        
+        const result = await response.json();
+        
+        // Update local data
+        investmentReturns.push(result.return);
+        
+        // Update displays
+        loadInvestmentReturns(currentInvestmentId);
+        renderInvestments(); // Update investment list to show new totals
+        updateDashboard();
+        
+        // Close modal and reset form
+        document.getElementById('returnModal').classList.remove('show');
+        document.getElementById('returnForm').reset();
+        
+        apiService.showSuccessMessage('Return added successfully!');
+        
+    } catch (error) {
+        console.error('Error adding return:', error);
+        apiService.handleError(error, 'Adding return');
+    } finally {
+        showLoadingState(false);
+    }
+}
+
+async function updateReturn(returnId) {
+    try {
+        showLoadingState(true);
+        
+        const returnData = {
+            return_date: document.getElementById('returnDate').value,
+            amount: getNumericValue(document.getElementById('returnAmount')),
+            period_type: document.getElementById('periodType').value,
+            comment: document.getElementById('returnComment').value
+        };
+        
+        const response = await fetch(`/api/investment-returns/${returnId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(returnData)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update return');
+        }
+        
+        const result = await response.json();
+        
+        // Update local data
+        const index = investmentReturns.findIndex(ret => ret.id === returnId);
+        if (index !== -1) {
+            investmentReturns[index] = result.return;
+        }
+        
+        // Update displays
+        loadInvestmentReturns(currentInvestmentId);
+        renderInvestments(); // Update investment list to show new totals
+        updateDashboard();
+        
+        // Close modal and reset form
+        document.getElementById('returnModal').classList.remove('show');
+        document.getElementById('returnForm').reset();
+        
+        apiService.showSuccessMessage('Return updated successfully!');
+        
+    } catch (error) {
+        console.error('Error updating return:', error);
+        apiService.handleError(error, 'Updating return');
+    } finally {
+        showLoadingState(false);
+    }
+}
+
+async function deleteReturn(returnId) {
+    if (!confirm('Are you sure you want to delete this return? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        showLoadingState(true);
+        
+        const response = await fetch(`/api/investment-returns/${returnId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to delete return');
+        }
+        
+        // Remove from local data
+        const index = investmentReturns.findIndex(ret => ret.id === returnId);
+        if (index !== -1) {
+            investmentReturns.splice(index, 1);
+        }
+        
+        // Update displays
+        loadInvestmentReturns(currentInvestmentId);
+        renderInvestments(); // Update investment list to show new totals
+        updateDashboard();
+        
+        apiService.showSuccessMessage('Return deleted successfully!');
+        
+    } catch (error) {
+        console.error('Error deleting return:', error);
+        apiService.handleError(error, 'Deleting return');
+    } finally {
+        showLoadingState(false);
+    }
+}
+
+async function loadInvestmentReturns(investmentId) {
+    try {
+        const response = await fetch(`/api/investment-returns?investment_id=${investmentId}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load returns');
+        }
+        
+        investmentReturns = await response.json();
+        renderInvestmentReturns();
+        
+    } catch (error) {
+        console.error('Error loading investment returns:', error);
+        investmentReturns = [];
+        renderInvestmentReturns();
+    }
+}
+
+function renderInvestmentReturns() {
+    const container = document.getElementById('returnsList');
+    if (!container) return;
+    
+    if (investmentReturns.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-chart-bar" style="font-size: 24px; margin-bottom: 8px; opacity: 0.5;"></i>
+                <p>No returns recorded yet.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Calculate totals
+    const totalReturns = investmentReturns.reduce((sum, ret) => sum + parseFloat(ret.amount || 0), 0);
+    const dailyReturns = investmentReturns.filter(ret => ret.period_type === 'day');
+    const weeklyReturns = investmentReturns.filter(ret => ret.period_type === 'week');
+    
+    container.innerHTML = `
+        <div class="returns-summary">
+            <div class="summary-item">
+                <span class="label">Total Returns:</span>
+                <span class="value">${formatCurrency(totalReturns)}</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Daily Returns:</span>
+                <span class="value">${dailyReturns.length} entries</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Weekly Returns:</span>
+                <span class="value">${weeklyReturns.length} entries</span>
+            </div>
+        </div>
+        
+        <div class="returns-table">
+            <div class="table-header">
+                <div class="col-date">Date</div>
+                <div class="col-amount">Amount</div>
+                <div class="col-period">Period</div>
+                <div class="col-comment">Comment</div>
+                <div class="col-actions">Actions</div>
+            </div>
+            ${investmentReturns.map(returnData => `
+                <div class="table-row">
+                    <div class="col-date">${formatDate(returnData.return_date)}</div>
+                    <div class="col-amount">${formatCurrency(returnData.amount)}</div>
+                    <div class="col-period">
+                        <span class="period-badge ${returnData.period_type}">
+                            ${returnData.period_type === 'day' ? 'Daily' : 'Weekly'}
+                        </span>
+                    </div>
+                    <div class="col-comment">${returnData.comment || '-'}</div>
+                    <div class="col-actions">
+                        <button class="btn btn-sm btn-secondary" onclick="showEditReturn(${returnData.id})" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteReturn(${returnData.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function showInvestmentDetails(investmentId) {
+    const investment = investments.find(inv => inv.id === investmentId);
+    if (!investment) {
+        console.error('Investment not found:', investmentId);
+        return;
+    }
+    
+    currentInvestmentId = investmentId;
+    
+    // Populate investment details
+    const detailsContent = document.getElementById('investmentDetailsContent');
+    if (detailsContent) {
+        const roi = investment.roi || 0;
+        const roiClass = roi >= 0 ? 'positive' : 'negative';
+        const breakEvenText = investment.breakEvenMonths 
+            ? `${investment.breakEvenMonths.toFixed(1)} months` 
+            : 'N/A';
+        
+        detailsContent.innerHTML = `
+            <div class="investment-details">
+                <div class="detail-item">
+                    <span class="label">Business Name:</span>
+                    <span class="value">${investment.name || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Business Type:</span>
+                    <span class="value">${investment.type || 'N/A'}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Investment Amount:</span>
+                    <span class="value">${formatCurrency(investment.amount)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Total Expenses:</span>
+                    <span class="value">${formatCurrency(investment.totalExpenses || 0)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Total Cost:</span>
+                    <span class="value">${formatCurrency(investment.totalCost || investment.amount)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Purchase Date:</span>
+                    <span class="value">${formatDate(investment.purchase_date)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Total Returns:</span>
+                    <span class="value">${formatCurrency(investment.totalReturns || 0)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Net Profit:</span>
+                    <span class="value ${(investment.netProfit || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(investment.netProfit || 0)}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">ROI:</span>
+                    <span class="value ${roiClass}">${roi.toFixed(2)}%</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">Break-even Time:</span>
+                    <span class="value">${breakEvenText}</span>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Load and display returns
+    loadInvestmentReturns(investmentId);
+    
+    // Show modal
+    const modal = document.getElementById('investmentDetailsModal');
+    if (modal) {
+        modal.classList.add('show');
+    }
+};
 let accounts = [];
 let transactions = [];
 let isDataLoaded = false;
@@ -16,14 +387,19 @@ async function loadData() {
         expenses = data.expenses || [];
         accounts = data.accounts || [];
         transactions = data.transactions || [];
+        investmentReturns = data.investmentReturns || [];
         
 
         
         // Process and normalize investment data
         dailyRevenues = {};
         investments.forEach(investment => {
+            // Calculate total returns for this investment from the returns data
+            const investmentReturnsData = investmentReturns.filter(ret => ret.investment_id == investment.id);
+            const totalReturns = investmentReturnsData.reduce((sum, ret) => sum + parseFloat(ret.amount || 0), 0);
+            
             // Map backend fields to frontend expected fields
-            investment.totalReturns = investment.total_returns || investment.calculated_total_returns || 0;
+            investment.totalReturns = totalReturns;
             investment.dailyRevenues = investment.dailyRevenues || investment.daily_revenues || [];
             
             if (investment.dailyRevenues && investment.dailyRevenues.length > 0) {
@@ -381,24 +757,30 @@ function calculateMonthlyExpenses() {
 
 function calculateMonthlyROI() {
     const totalInvested = investments.reduce((total, inv) => total + (inv.amount || 0), 0);
-    const totalReturns = investments.reduce((total, inv) => total + (inv.totalReturns || 0), 0);
+    const totalReturns = investmentReturns.reduce((total, ret) => total + parseFloat(ret.amount || 0), 0);
     
     if (totalInvested === 0 || isNaN(totalInvested) || isNaN(totalReturns)) return 0;
+    
+    // Revenue-based ROI = (Total Revenue / Total Investment) × 100%
     const roi = (totalReturns / totalInvested) * 100;
+    
     return isNaN(roi) ? 0 : roi.toFixed(1);
 }
 
 function calculateTotalRevenue() {
-    return investments.reduce((total, inv) => total + (inv.totalReturns || 0), 0);
+    // Calculate total revenue from all investment returns
+    return investmentReturns.reduce((total, ret) => total + parseFloat(ret.amount || 0), 0);
 }
 
 function calculateStartingBalance() {
-    // Calculate starting balance from initial deposits minus withdrawals
-    const totalDeposits = transactions
-        .filter(t => t.type === 'deposit')
-        .reduce((sum, t) => sum + t.amount, 0);
+    // Calculate starting balance from account balances (total money in bank accounts)
+    const totalAccountBalance = accounts.reduce((sum, account) => sum + (account.balance || 0), 0);
     
-    return totalDeposits;
+    // Debug logging
+    console.log('Accounts data:', accounts);
+    console.log('Total account balance:', totalAccountBalance);
+    
+    return totalAccountBalance;
 }
 
 function calculateRemainingBalance() {
@@ -458,6 +840,9 @@ function showAddInvestment() {
     document.getElementById('investmentForm').reset();
     document.getElementById('editInvestmentId').value = '';
     
+    // Set today's date as default for purchase date
+    document.getElementById('startDate').value = new Date().toISOString().split('T')[0];
+    
     // Set modal title and button text for adding
     document.getElementById('investmentModalTitle').textContent = 'Add New Investment';
     document.getElementById('investmentSubmitBtn').textContent = 'Add Investment';
@@ -498,7 +883,8 @@ async function addInvestment() {
         const investmentData = {
             name: document.getElementById('businessName').value,
             type: document.getElementById('businessType').value,
-            amount: getNumericValue(document.getElementById('investmentAmount'))
+            amount: getNumericValue(document.getElementById('investmentAmount')),
+            purchase_date: document.getElementById('startDate').value
         };
         
         const newInvestment = await apiService.createInvestment(investmentData);
@@ -539,6 +925,7 @@ function showEditInvestment(investmentId) {
     document.getElementById('businessName').value = investment.name || '';
     document.getElementById('businessType').value = investment.type || '';
     document.getElementById('investmentAmount').value = investment.amount || '';
+    document.getElementById('startDate').value = investment.purchase_date || '';
     
     // Set modal title and button text for editing
     document.getElementById('investmentModalTitle').textContent = 'Edit Investment';
@@ -557,7 +944,8 @@ async function updateInvestment(investmentId) {
         const investmentData = {
             name: document.getElementById('businessName').value,
             type: document.getElementById('businessType').value,
-            amount: getNumericValue(document.getElementById('investmentAmount'))
+            amount: getNumericValue(document.getElementById('investmentAmount')),
+            purchase_date: document.getElementById('startDate').value
         };
         
         const updatedInvestment = await apiService.updateInvestment(investmentId, investmentData);
@@ -645,10 +1033,13 @@ function renderInvestments() {
                         <span class="business-type">${investment.type || 'General'}</span>
                     </div>
                     <div class="investment-actions">
-                        <button class="btn-primary" onclick="showEditInvestment('${investment.id}')">
+                        <button class="btn-primary" onclick="showAddReturn(${investment.id})" style="background: #059669;">
+                            <i class="fas fa-plus"></i> Add Revenue
+                        </button>
+                        <button class="btn-primary" onclick="showEditInvestment(${investment.id})">
                             <i class="fas fa-edit"></i> Edit
                         </button>
-                        <button class="btn-primary" onclick="deleteInvestment('${investment.id}')" style="background: #dc2626;">
+                        <button class="btn-primary" onclick="deleteInvestment(${investment.id})" style="background: #dc2626;">
                             <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
@@ -691,6 +1082,9 @@ function showAddExpense() {
     // Set today's date as default
     document.getElementById('expenseDate').value = new Date().toISOString().split('T')[0];
     
+    // Populate investment dropdown
+    populateInvestmentDropdown();
+    
     const modal = document.getElementById('expenseModal');
     if (modal) {
         modal.classList.add('show');
@@ -723,7 +1117,8 @@ async function addExpense() {
             amount: getNumericValue(document.getElementById('expenseAmount')),
             date: document.getElementById('expenseDate').value || new Date().toISOString().split('T')[0],
             payment_method: document.getElementById('paymentMethod').value,
-            notes: document.getElementById('expenseNotes').value || ''
+            notes: document.getElementById('expenseNotes').value || '',
+            investment_id: document.getElementById('relatedInvestment').value || null
         };
         
         const newExpense = await apiService.createExpense(expenseData);
@@ -764,10 +1159,14 @@ function showEditExpense(expenseId) {
     document.getElementById('expenseDate').value = expense.date || '';
     document.getElementById('paymentMethod').value = expense.payment_method || '';
     document.getElementById('expenseNotes').value = expense.notes || '';
+    document.getElementById('relatedInvestment').value = expense.investment_id || '';
     
     // Set modal title and button text for editing
     document.getElementById('expenseModalTitle').textContent = 'Edit Expense';
     document.getElementById('expenseSubmitBtn').textContent = 'Update Expense';
+    
+    // Populate investment dropdown
+    populateInvestmentDropdown();
     
     const modal = document.getElementById('expenseModal');
     if (modal) {
@@ -1895,6 +2294,25 @@ function populateBusinessDropdown() {
     datalist.innerHTML = businessNames.map(name => `<option value="${name}">`).join('');
 }
 
+// Function to populate investment dropdown
+function populateInvestmentDropdown() {
+    const investmentSelect = document.getElementById('relatedInvestment');
+    if (!investmentSelect) return;
+    
+    // Clear existing options except the first one
+    investmentSelect.innerHTML = '<option value="">Select Investment</option>';
+    
+    // Add investment options
+    if (investments && investments.length > 0) {
+        investments.forEach(investment => {
+            const option = document.createElement('option');
+            option.value = investment.id;
+            option.textContent = `${investment.name} - $${formatCurrency(investment.amount)}`;
+            investmentSelect.appendChild(option);
+        });
+    }
+}
+
 // Dashboard Performance Summary
 function updateDashboardPerformance() {
     const container = document.getElementById('dashboardPerformance');
@@ -1931,7 +2349,7 @@ function updatePerformanceTable() {
     if (investments.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="6" style="text-align: center; padding: 20px;">
+                <td colspan="8" style="text-align: center; padding: 20px;">
                     No investment data available
                 </td>
             </tr>
@@ -1940,17 +2358,25 @@ function updatePerformanceTable() {
     }
     
     tableBody.innerHTML = investments.map(investment => {
-        const roi = investment.amount > 0 ? ((investment.totalReturns || 0) / investment.amount * 100) : 0;
+        const roi = investment.roi || 0;
         const roiClass = roi >= 0 ? 'positive' : 'negative';
+        const netProfit = investment.netProfit || 0;
+        const netProfitClass = netProfit >= 0 ? 'positive' : 'negative';
+        const breakEvenText = investment.breakEvenMonths 
+            ? `${investment.breakEvenMonths.toFixed(1)} months` 
+            : 'N/A';
         
         return `
             <tr>
                 <td>${investment.name || 'Unnamed'}</td>
                 <td>${investment.type || 'General'}</td>
                 <td>${formatCurrency(investment.amount || 0)}</td>
+                <td>${formatCurrency(investment.totalExpenses || 0)}</td>
+                <td>${formatCurrency(investment.totalCost || investment.amount || 0)}</td>
                 <td>${formatCurrency(investment.totalReturns || 0)}</td>
+                <td class="${netProfitClass}">${formatCurrency(netProfit)}</td>
                 <td class="${roiClass}">${roi.toFixed(1)}%</td>
-                <td>${formatDate(investment.date)}</td>
+                <td>${breakEvenText}</td>
             </tr>
         `;
     }).join('');

@@ -103,11 +103,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadData();
     }
     
-    // Set up account form submission
-    const accountForm = document.getElementById('accountForm');
-    if (accountForm) {
-        accountForm.addEventListener('submit', handleAccountSubmit);
-    }
+    // Event listeners are handled in the main script.js file
 });
 </script>
 @endpush

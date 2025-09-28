@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Investment;
+use App\Models\InvestmentReturn;
 use App\Models\Expense;
 use App\Models\Account;
 use App\Models\Transaction;
@@ -20,8 +21,8 @@ class AnalyticsController extends Controller
         $data = [
             'total_investments' => Investment::sum('current_value') ?: Investment::sum('amount'),
             'total_expenses' => Expense::sum('amount'),
-            'total_accounts' => Account::where('is_active', true)->count(),
-            'total_balance' => Account::where('is_active', true)->sum('balance'),
+            'total_accounts' => Account::count(),
+            'total_balance' => Account::sum('balance'),
             'recent_transactions' => Transaction::with('account')
                 ->orderBy('date', 'desc')
                 ->limit(10)
@@ -41,15 +42,17 @@ class AnalyticsController extends Controller
 
         $data = [
             'summary' => [
-                'total_balance' => Account::where('is_active', true)->sum('balance'),
+                'total_balance' => Account::sum('balance'),
                 'total_investments' => Investment::sum('current_value') ?: Investment::sum('amount'),
-                'monthly_expenses' => Expense::whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$currentMonth])->sum('amount'),
+                'monthly_expenses' => Expense::whereRaw('strftime("%Y-%m", date) = ?', [$currentMonth])->sum('amount'),
                 'monthly_income' => Transaction::where('type', 'income')
-                    ->whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$currentMonth])
+                    ->whereRaw('strftime("%Y-%m", date) = ?', [$currentMonth])
+                    ->sum('amount') + 
+                    InvestmentReturn::whereRaw('strftime("%Y-%m", return_date) = ?', [$currentMonth])
                     ->sum('amount')
             ],
             'expense_categories' => Expense::select('category', DB::raw('SUM(amount) as total'))
-                ->whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$currentMonth])
+                ->whereRaw('strftime("%Y-%m", date) = ?', [$currentMonth])
                 ->groupBy('category')
                 ->get(),
             'investment_types' => Investment::select('type', DB::raw('SUM(COALESCE(current_value, amount)) as total'))
@@ -57,15 +60,19 @@ class AnalyticsController extends Controller
                 ->get(),
             'monthly_comparison' => [
                 'current_month' => [
-                    'expenses' => Expense::whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$currentMonth])->sum('amount'),
+                    'expenses' => Expense::whereRaw('strftime("%Y-%m", date) = ?', [$currentMonth])->sum('amount'),
                     'income' => Transaction::where('type', 'income')
-                        ->whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$currentMonth])
+                        ->whereRaw('strftime("%Y-%m", date) = ?', [$currentMonth])
+                        ->sum('amount') + 
+                        InvestmentReturn::whereRaw('strftime("%Y-%m", return_date) = ?', [$currentMonth])
                         ->sum('amount')
                 ],
                 'last_month' => [
-                    'expenses' => Expense::whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$lastMonth])->sum('amount'),
+                    'expenses' => Expense::whereRaw('strftime("%Y-%m", date) = ?', [$lastMonth])->sum('amount'),
                     'income' => Transaction::where('type', 'income')
-                        ->whereRaw('DATE_FORMAT(date, "%Y-%m") = ?', [$lastMonth])
+                        ->whereRaw('strftime("%Y-%m", date) = ?', [$lastMonth])
+                        ->sum('amount') + 
+                        InvestmentReturn::whereRaw('strftime("%Y-%m", return_date) = ?', [$lastMonth])
                         ->sum('amount')
                 ]
             ],
@@ -93,17 +100,17 @@ class AnalyticsController extends Controller
             )->groupBy('type')->get(),
             'monthly_trends' => [
                 'expenses' => Expense::select(
-                    DB::raw('DATE_FORMAT(date, "%Y-%m") as month'),
+                    DB::raw('strftime("%Y-%m", date) as month'),
                     DB::raw('SUM(amount) as total')
-                )->groupBy(DB::raw('DATE_FORMAT(date, "%Y-%m")'))
+                )->groupBy(DB::raw('strftime("%Y-%m", date)'))
                 ->orderBy('month', 'desc')
                 ->limit(12)
                 ->get(),
                 'income' => Transaction::where('type', 'income')
                     ->select(
-                        DB::raw('DATE_FORMAT(date, "%Y-%m") as month'),
+                        DB::raw('strftime("%Y-%m", date) as month'),
                         DB::raw('SUM(amount) as total')
-                    )->groupBy(DB::raw('DATE_FORMAT(date, "%Y-%m")'))
+                    )->groupBy(DB::raw('strftime("%Y-%m", date)'))
                     ->orderBy('month', 'desc')
                     ->limit(12)
                     ->get()

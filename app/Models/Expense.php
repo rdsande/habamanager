@@ -17,10 +17,16 @@ class Expense extends Model
         'date',
         'payment_method',
         'notes',
+        'investment_id',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'date' => 'date',
     ];
+
+    public function investment()
+    {
+        return $this->belongsTo(Investment::class);
+    }
 }

@@ -96,6 +96,14 @@
             </div>
             
             <div class="form-group">
+                <label for="expenseInvestment">Related Investment (Optional)</label>
+                <select id="expenseInvestment" name="investment_id">
+                    <option value="">No Investment - General Expense</option>
+                    <!-- Investment options will be populated by JavaScript -->
+                </select>
+            </div>
+            
+            <div class="form-group">
                 <label for="expenseAmount">Amount ($)</label>
                 <input type="number" id="expenseAmount" name="amount" step="0.01" min="0" required>
             </div>
@@ -133,6 +141,14 @@
                 <input type="text" id="expenseReceipt" name="receipt_number">
             </div>
             
+            <div class="form-group">
+                <label for="relatedInvestment">Related Investment (Optional)</label>
+                <select id="relatedInvestment" name="investment_id">
+                    <option value="">Select Investment</option>
+                    <!-- Options will be populated by JavaScript -->
+                </select>
+            </div>
+            
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('expenseModal')">Cancel</button>
                 <button type="submit" id="expenseSubmitBtn" class="btn btn-primary">Save Expense</button>
@@ -150,11 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadData();
     }
     
-    // Set up expense form submission
-    const expenseForm = document.getElementById('expenseForm');
-    if (expenseForm) {
-        expenseForm.addEventListener('submit', handleExpenseSubmit);
-    }
+    // Event listeners are handled in the main script.js file
 });
 </script>
 @endpush

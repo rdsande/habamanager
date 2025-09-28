@@ -64,6 +64,11 @@
                 <input type="number" id="investmentAmount" name="amount" step="0.01" min="0" required>
             </div>
             
+            <div class="form-group">
+                <label for="startDate">Purchase Date</label>
+                <input type="date" id="startDate" name="purchase_date" required>
+            </div>
+            
             <div class="form-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('investmentModal')">Cancel</button>
                 <button type="submit" id="investmentSubmitBtn" class="btn btn-primary">Save Investment</button>
@@ -82,6 +87,62 @@
         <div id="investmentDetailsContent">
             <!-- Details will be populated by JavaScript -->
         </div>
+        
+        <!-- Returns Section -->
+        <div class="returns-section">
+            <div class="section-header">
+                <h4>Investment Returns</h4>
+                <button class="btn btn-sm btn-primary" onclick="showAddReturn()">
+                    <i class="fas fa-plus"></i> Add Return
+                </button>
+            </div>
+            <div id="returnsList" class="returns-list">
+                <!-- Returns will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Return Modal -->
+<div id="returnModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="returnModalTitle">Add Return</h3>
+            <span class="close" onclick="closeModal('returnModal')">&times;</span>
+        </div>
+        <form id="returnForm">
+            <input type="hidden" id="returnId" name="id">
+            <input type="hidden" id="returnInvestmentId" name="investment_id">
+            
+            <div class="form-group">
+                <label for="returnDate">Date</label>
+                <input type="date" id="returnDate" name="return_date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="returnAmount">Amount (TSh)</label>
+                <input type="number" id="returnAmount" name="amount" step="0.01" min="0" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="periodType">Period Type</label>
+                <select id="periodType" name="period_type" required>
+                    <option value="">Select Period</option>
+                    <option value="day">Daily</option>
+                    <option value="week">Weekly</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="returnComment">Comment</label>
+                <textarea id="returnComment" name="comment" rows="3" placeholder="Optional comment about this return"></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('returnModal')">Cancel</button>
+                <button type="submit" id="returnSubmitBtn" class="btn btn-primary">Save Return</button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
@@ -94,11 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadData();
     }
     
-    // Set up investment form submission
-    const investmentForm = document.getElementById('investmentForm');
-    if (investmentForm) {
-        investmentForm.addEventListener('submit', handleInvestmentSubmit);
-    }
+    // Event listeners are handled in the main script.js file
 });
 </script>
 @endpush

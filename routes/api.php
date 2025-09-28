@@ -8,6 +8,8 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\Api\InvestmentReturnController;
+use App\Http\Controllers\ProjectController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -20,6 +22,15 @@ Route::apiResource('investments', InvestmentController::class)->names([
     'show' => 'api.investments.show',
     'update' => 'api.investments.update',
     'destroy' => 'api.investments.destroy'
+]);
+
+// Investment Returns routes
+Route::apiResource('investment-returns', InvestmentReturnController::class)->names([
+    'index' => 'api.investment-returns.index',
+    'store' => 'api.investment-returns.store',
+    'show' => 'api.investment-returns.show',
+    'update' => 'api.investment-returns.update',
+    'destroy' => 'api.investment-returns.destroy'
 ]);
 
 // Expense routes
@@ -47,6 +58,15 @@ Route::apiResource('transactions', TransactionController::class)->names([
     'show' => 'api.transactions.show',
     'update' => 'api.transactions.update',
     'destroy' => 'api.transactions.destroy'
+]);
+
+// Project routes
+Route::apiResource('projects', ProjectController::class)->names([
+    'index' => 'api.projects.index',
+    'store' => 'api.projects.store',
+    'show' => 'api.projects.show',
+    'update' => 'api.projects.update',
+    'destroy' => 'api.projects.destroy'
 ]);
 
 // Analytics routes
