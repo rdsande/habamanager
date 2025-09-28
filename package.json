@@ -1,11 +1,26 @@
 {
     "$schema": "https://json.schemastore.org/package.json",
+    "name": "haba-manager",
+    "version": "1.0.0",
+    "description": "Smart Money Management System for tracking investments, expenses, and financial performance",
     "private": true,
     "type": "module",
     "scripts": {
         "build": "vite build",
         "dev": "vite"
     },
+    "keywords": [
+        "finance",
+        "investment",
+        "expense-tracker",
+        "money-management",
+        "dashboard",
+        "analytics",
+        "business",
+        "portfolio"
+    ],
+    "author": "Haba Manager Team",
+    "license": "MIT",
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
         "axios": "^1.11.0",
